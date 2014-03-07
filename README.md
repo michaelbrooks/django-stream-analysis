@@ -99,7 +99,7 @@ You should also set the `DURATION` of your
 time frames, which determines how often your analysis will be run,
 and how much stream time each one covers.
 
-You must override the `calculate(self, stream_data, task)` method,
+You must override the `calculate(self, stream_data)` method,
 where you actually do some operations on the stream data for this time frame.
 
 Optionally, you may attach new fields to your Time Frame if there
@@ -119,7 +119,7 @@ class DemoTimeFrame(stream_analysis.BaseTimeFrame):
     # Store the total tweet count in this time frame
     item_count = models.IntegerField(default=0)
 
-    def calculate(self, stream_data, task):
+    def calculate(self, stream_data):
 
         # store the result of our "calculation"
         self.item_count = len(stream_data)
