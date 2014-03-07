@@ -63,7 +63,7 @@ class AnalysisTask(object):
             if job.meta.get('analysis.task.key') == self.key:
                 return job
 
-    def schedule(self, cancel_first=True):
+    def schedule(self, cancel_first=True, start_now=True):
         """Schedule this analysis task."""
 
         if cancel_first:
@@ -86,6 +86,9 @@ class AnalysisTask(object):
         job.save()
 
         logger.info("Scheduled task '%s' every %d seconds", self.name, interval)
+
+        if start_now:
+            create_frames.delay(self.key)
 
         return True
 
@@ -142,6 +145,7 @@ def _insert_and_queue(task_key, time_frames):
         logger.info("Created %d time frames", len(time_frames))
 
 
+@django_rq.job
 def create_frames(task_key):
     """
     Creates new time frames that are needed to analyze new stream data.
