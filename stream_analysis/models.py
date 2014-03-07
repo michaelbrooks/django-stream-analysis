@@ -1,8 +1,10 @@
 import datetime
 import time
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 import streams
+
 
 class TimedIntervalMixin(models.Model):
     """

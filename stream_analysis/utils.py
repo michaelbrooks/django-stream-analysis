@@ -4,11 +4,10 @@ functions for executing scheduled analysis work
 based on the settings in ANALYSIS_TIME_FRAME_TASKS.
 """
 from collections import defaultdict
-
 import datetime
 import logging
-import re
 
+import re
 from django.utils import importlib
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 import models

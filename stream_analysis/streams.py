@@ -1,7 +1,3 @@
-import logging
-from stream_analysis.utils import AnalysisTask
-
-logger = logging.getLogger('stream_analysis')
 
 class AbstractStream(object):
 
