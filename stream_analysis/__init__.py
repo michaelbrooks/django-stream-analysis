@@ -12,8 +12,8 @@ if not logger.handlers:
                 "class": "logging.StreamHandler",
                 },
             },
-        "analysis": {
-            "stream_analysis": ["analysis"],
+        "stream_analysis": {
+            "handlers": ["stream_analysis"],
             "level": "DEBUG"
         }
     })

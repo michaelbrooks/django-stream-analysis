@@ -64,11 +64,7 @@ class AnalysisTask(object):
 
     def get_frame_class(self):
         """Get the frame class for this analysis task"""
-        try:
-            return _import_attribute(self.frame_class_path, reload=True)
-        except Exception as e:
-            logger.error(e)
-            raise ImproperlyConfigured("Frame class path %s is not reachable" % self.frame_class_path)
+        return _import_attribute(self.frame_class_path, reload=True)
 
     def get_rq_job(self):
         """Get the job for scheduling analysis of this task."""
