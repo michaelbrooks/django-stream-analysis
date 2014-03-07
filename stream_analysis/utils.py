@@ -51,15 +51,6 @@ class AnalysisTask(object):
         if not isinstance(self.name, basestring):
             raise ImproperlyConfigured("Name %s in ANALYSIS_TIME_FRAME_TASKS is not a string" % self.name)
 
-        # Try locating the target class
-        frame_class = self.get_frame_class()
-
-        if not issubclass(frame_class, models.BaseTimeFrame):
-            raise ImproperlyConfigured("Frame class %s does not extend BaseTimeFrame" % frame_class.__name__)
-
-        # Make sure the time frame has a duration set properly
-        if not isinstance(frame_class.DURATION, datetime.timedelta):
-            raise ImproperlyConfigured("Frame class %s does not provide DURATION property" % frame_class.__name__)
 
     def get_frame_class(self):
         """Get the frame class for this analysis task"""
