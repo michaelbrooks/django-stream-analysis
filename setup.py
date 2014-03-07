@@ -24,9 +24,9 @@ setup(
         "Topic :: Utilities",
         "License :: OSI Approved :: MIT License",
     ],
-    requires=[
+    install_requires=[
         "django",
-        "django-rq>=0.6.1",
-        "rq-scheduler>=0.4.0"
+        "django-rq >= 0.6.1",
+        "rq-scheduler >= 0.4.0"
     ]
 )
