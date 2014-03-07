@@ -27,6 +27,6 @@ setup(
     requires=[
         "django",
         "django-rq>=0.6.1",
-        "rq-scheduler>=1.1"
+        "rq-scheduler>=0.4.0"
     ]
 )
