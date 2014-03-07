@@ -19,11 +19,11 @@ logger = logging.getLogger('stream_analysis')
 scheduler = django_rq.get_scheduler()
 
 
-def _import_attribute(name, reload=False):
+def _import_attribute(name, reload_module=False):
     """Return an attribute from a dotted path name (e.g. "path.to.func")."""
     module_name, attribute = name.rsplit('.', 1)
     module = importlib.import_module(module_name)
-    if reload:
+    if reload_module:
         reload(module)
     return getattr(module, attribute)
 
@@ -63,7 +63,7 @@ class AnalysisTask(object):
 
     def get_frame_class(self):
         """Get the frame class for this analysis task"""
-        return _import_attribute(self.frame_class_path, reload=True)
+        return _import_attribute(self.frame_class_path, reload_module=True)
 
     def get_rq_job(self):
         """Get the job for scheduling analysis of this task."""
