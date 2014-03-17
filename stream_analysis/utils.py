@@ -6,6 +6,7 @@ based on the settings in ANALYSIS_TIME_FRAME_TASKS.
 from collections import defaultdict
 import datetime
 import logging
+from sys import exc_info
 
 import re
 from django.utils import importlib
@@ -107,17 +108,30 @@ class AnalysisTask(object):
         return False
 
     def clear_queue(self):
-        """Clear all queued create_frame and analyze_frame jobs"""
+        """Clear all queued analyze_frame jobs, and their corresponding frames"""
+
+        frame_class = self.get_frame_class()
+
         queue = django_rq.get_queue()
         jobs = queue.get_jobs()
         cleared = 0
+        frames_deleted = 0
         for job in jobs:
             # Delete jobs for this task but not scheduler jobs
             if (job.meta.get('analysis.task.key') == self.key) and not job.meta.get('analysis.task.schedule'):
                 cleared += 1
                 job.cancel()
 
-        return cleared
+                frame_id = job.meta.get('analysis.frame.id')
+                if frame_id:
+                    # Delete the corresponding frame
+                    try:
+                        frame_class.objects.filter(pk=frame_id, calculated).delete()
+                        frames_deleted += 1
+                    except Exception as e:
+                        logger.warn(e, exc_info=True)
+
+        return cleared, frames_deleted
 
     @classmethod
     def get(cls, key=None):
@@ -156,6 +170,7 @@ def _insert_and_queue(task_key, time_frames):
         frame.save()
         job = analyze_frame.delay(task_key=task_key, frame_id=frame.pk)
         job.meta['analysis.task.key'] = task_key
+        job.meta['analysis.frame.id'] = frame.pk
         job.save()
 
     if time_frames:

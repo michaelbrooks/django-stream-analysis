@@ -27,5 +27,5 @@ class Command(BaseCommand):
                 print "  * %s : %s" % (task.key, task.name)
             return
 
-        cleared = task.clear_queue()
-        print "Cleared %d jobs for task %s" % (cleared, task_key)
+        cleared, frames_deleted = task.clear_queue()
+        print "Cleared %d jobs and %d frames for task %s" % (cleared, frames_deleted, task_key)
