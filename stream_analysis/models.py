@@ -48,7 +48,6 @@ class TimedIntervalMixin(models.Model):
         """
         return self.start_time + self.duration
 
-
     #######
     # Class methods
     #######

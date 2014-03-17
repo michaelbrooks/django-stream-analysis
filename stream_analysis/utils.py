@@ -60,7 +60,7 @@ class AnalysisTask(object):
         """Get the job for scheduling analysis of this task."""
         jobs = scheduler.get_jobs()
         for job in jobs:
-            if job.meta.get('analysis.task.key') == self.key:
+            if job.meta.get('analysis.task.schedule') and job.meta.get('analysis.task.key') == self.key:
                 return job
 
     def schedule(self, cancel_first=True, start_now=True):
@@ -83,6 +83,7 @@ class AnalysisTask(object):
         )
 
         job.meta['analysis.task.key'] = self.key
+        job.meta['analysis.task.schedule'] = True
         job.save()
 
         logger.info("Scheduled task '%s' every %d seconds", self.name, interval)
@@ -104,6 +105,19 @@ class AnalysisTask(object):
             return True
 
         return False
+
+    def clear_queue(self):
+        """Clear all queued create_frame and analyze_frame jobs"""
+        queue = django_rq.get_queue()
+        jobs = queue.get_jobs()
+        cleared = 0
+        for job in jobs:
+            # Delete jobs for this task but not scheduler jobs
+            if (job.meta.get('analysis.task.key') == self.key) and not job.meta.get('analysis.task.schedule'):
+                cleared += 1
+                job.cancel()
+
+        return cleared
 
     @classmethod
     def get(cls, key=None):
@@ -140,7 +154,9 @@ def _insert_and_queue(task_key, time_frames):
     """
     for frame in time_frames:
         frame.save()
-        analyze_frame.delay(task_key=task_key, frame_id=frame.pk)
+        job = analyze_frame.delay(task_key=task_key, frame_id=frame.pk)
+        job.meta['analysis.task.key'] = task_key
+
     if time_frames:
         logger.info("Created %d time frames", len(time_frames))
 
