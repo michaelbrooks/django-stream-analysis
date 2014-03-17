@@ -156,6 +156,7 @@ def _insert_and_queue(task_key, time_frames):
         frame.save()
         job = analyze_frame.delay(task_key=task_key, frame_id=frame.pk)
         job.meta['analysis.task.key'] = task_key
+        job.save()
 
     if time_frames:
         logger.info("Created %d time frames", len(time_frames))

@@ -21,7 +21,10 @@ class Command(BaseCommand):
         task = AnalysisTask.get(key=task_key)
         if not task:
             print "No analysis task matching key %s" % task_key
-            print self.usage("stream_analysis")
+            print "Specify an analysis task key from:"
+            tasks = AnalysisTask.get()
+            for task in tasks:
+                print "  * %s : %s" % (task.key, task.name)
             return
 
         cleared = task.clear_queue()
