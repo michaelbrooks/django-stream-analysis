@@ -12,10 +12,11 @@ class Command(BaseCommand):
     def handle(self, task_key=None, *args, **options):
 
         if not task_key:
-            print "Must specify an analysis task key from:"
+            print "Specify an analysis task key from:"
             tasks = AnalysisTask.get()
             for task in tasks:
-                print "\t* %s : %s" % (task.key, task.name)
+                print "  * %s : %s" % (task.key, task.name)
+            return
 
         task = AnalysisTask.get(key=task_key)
         if not task:

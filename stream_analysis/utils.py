@@ -122,7 +122,7 @@ class AnalysisTask(object):
     @classmethod
     def get(cls, key=None):
         if key:
-            return cls._tasks_config[key]
+            return cls._tasks_config.get(key, None)
         else:
             return cls._tasks_config.values()
 
