@@ -126,7 +126,7 @@ class AnalysisTask(object):
                 if frame_id:
                     # Delete the corresponding frame
                     try:
-                        frame_class.objects.filter(pk=frame_id, calculated).delete()
+                        frame_class.objects.filter(pk=frame_id, calculated=False).delete()
                         frames_deleted += 1
                     except Exception as e:
                         logger.warn(e, exc_info=True)
