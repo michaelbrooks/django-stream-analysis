@@ -205,7 +205,7 @@ class BaseTimeFrame(TimedIntervalMixin, models.Model):
 
     def __unicode__(self):
         """Printing for Django admin / debugging"""
-        return "[%s, %s]"
+        return "Frame %s" % self.start_time
 
     @classmethod
     def get_average_analysis_time(cls, start=None, end=None):
