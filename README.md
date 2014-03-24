@@ -63,15 +63,15 @@ class TweetStream(stream_analysis.AbstractStream):
         return Tweet.get_created_in_range(start, end) \
             .order_by('created_at')
 
-    def delete_analyzed(self, num_analyses=None):
-        analyzed = Tweet.objects.filter(analyzed_by__gte=num_analyses)
-        count = len(analyzed)
+    def delete_before(self, cutoff_datetime):
+        analyzed = Tweet.objects.filter(created_at__lte=cutoff_datetime)
+        count = analyzed.count()
         analyzed.delete()
         return count
 
-    def mark_analyzed(self, stream_data, analysis_task):
-        # Increase the analyzed_by count on the tweets
-        stream_data.update(analyzed_by=models.F('analyzed_by') + 1)
+    def count_before(self, cutoff_datetime):
+        analyzed = Tweet.objects.filter(start_time__lte=cutoff_datetime)
+        return analyzed.count()
 ```
 
 Some documentation of what these methods should do
@@ -106,6 +106,14 @@ Optionally, you may attach new fields to your Time Frame if there
 are data you want to store every `DURATION` of time.
 You can do whatever you like inside the calculate() method,
 including the creation or modification of model data from other tables.
+The `cleanup(self)` method can be filled in to remove any
+old data accumulated elsewhere by the time frame analysis.
+It will be called after `calculate()`.
+
+To ensure that stream data is not saved for too long,
+the `get_stream_memory_cutoff()` class method is used to
+determine the earliest stream data that your time frame
+still needs. You may optionally override this.
 
 ```python
 class DemoTimeFrame(stream_analysis.BaseTimeFrame):
@@ -120,12 +128,8 @@ class DemoTimeFrame(stream_analysis.BaseTimeFrame):
     item_count = models.IntegerField(default=0)
 
     def calculate(self, stream_data):
-
         # store the result of our "calculation"
         self.item_count = len(stream_data)
-
-        # We are done with these data
-        return stream_data
 ```
 
 There is more documentation in the BaseTimeFrame model itself.

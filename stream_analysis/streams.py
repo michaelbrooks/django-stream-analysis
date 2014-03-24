@@ -17,18 +17,15 @@ class AbstractStream(object):
         """Returns stream data between start datetime and end datetime."""
         raise NotImplemented
 
-    def delete_analyzed(self, num_analyses=None):
+    def delete_before(self, cutoff_datetime):
         """
-        Delete analyzed stream data. Returns the amount of data deleted.
-
-        num_analyses will give the number of configured analysis tasks.
-        Using this parameter is optional.
+        Delete analyzed stream data older than cutoff_datetime.
+        Returns the amount of data deleted.
         """
         return 0
 
-    def mark_analyzed(self, stream_data, analysis_task):
+    def count_before(self, cutoff_datetime):
         """
-        Mark the given stream data as analyzed by the given task.
+        Counts the amount of stream data older than cutoff_datetime.
         """
-        pass
-
+        return 0

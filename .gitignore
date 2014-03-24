@@ -2,5 +2,9 @@
 *.pot
 *.pyc
 
+/build
+/dist
+*.egg-info
+
 /venv
 /.idea

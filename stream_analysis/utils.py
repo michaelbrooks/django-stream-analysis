@@ -3,15 +3,13 @@ Defines the Analysis task and
 functions for executing scheduled analysis work
 based on the settings in ANALYSIS_TIME_FRAME_TASKS.
 """
-from collections import defaultdict
+
 import datetime
 import logging
-from sys import exc_info
 
 import re
-from django.utils import importlib
+from django.utils import importlib, timezone
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-import models
 import settings
 import django_rq
 
@@ -309,12 +307,44 @@ def analyze_frame(task_key, frame_id):
 
     frame.mark_started()
 
-    processed_data = frame.calculate(stream_data)
+    frame.calculate(stream_data)
+
+    frame.mark_cleanup_started()
+
+    frame.cleanup()
 
     frame.mark_done()
-    stream.mark_analyzed(processed_data, task)
 
     logger.info('Processed data from %s for %s #%s', frame_class.STREAM_CLASS.__name__, frame_class.__name__, str(frame_id))
+
+
+def get_stream_cutoff_times():
+    """
+    Find the earliest time that we can safely delete
+    for any the stream classes referenced by our analysis tasks.
+
+    Returns a dict of stream classes -> date times.
+    """
+    tasks = AnalysisTask.get()
+
+    # Find the earliest time that we can safely delete
+    # for any the stream classes referenced by our analysis tasks.
+    stream_class_memory_cutoffs = {}
+    for task in tasks:
+        frame_class = task.get_frame_class()
+        stream_class = frame_class.STREAM_CLASS
+
+        if stream_class not in stream_class_memory_cutoffs:
+            stream_class_memory_cutoffs[stream_class] = timezone.now()
+
+        cutoff_for_this_task = frame_class.get_stream_memory_cutoff()
+
+        if cutoff_for_this_task is None or stream_class_memory_cutoffs[stream_class] is None:
+            stream_class_memory_cutoffs[stream_class] = None
+        else:
+            stream_class_memory_cutoffs[stream_class] = min(cutoff_for_this_task, stream_class_memory_cutoffs[stream_class])
+
+    return stream_class_memory_cutoffs
 
 
 @django_rq.job
@@ -324,17 +354,15 @@ def cleanup():
     by all tasks that use those streams.
     """
 
-    tasks = AnalysisTask.get()
-
-    stream_classes = defaultdict(int)
-    for task in tasks:
-        stream_classes[task.get_frame_class().STREAM_CLASS] += 1
+    stream_class_memory_cutoffs = get_stream_cutoff_times()
 
     total = 0
-    for stream_class, num_analyses in stream_classes.iteritems():
+    for stream_class, cutoff_time in stream_class_memory_cutoffs.iteritems():
+        if cutoff_time is None:
+            logger.info("Skipped cleaning for stream %s due to null cutoff time.", stream_class.__name__)
         stream = stream_class()
-        deleted = stream.delete_analyzed(num_analyses=num_analyses)
-        logger.info("Cleaned %s covered by %d analyses.", deleted, num_analyses)
+        deleted = stream.delete_before(cutoff_time)
+        logger.info("Cleaned %s stream items before %s from %s.", deleted, cutoff_time, stream_class.__name__)
         total += deleted
 
     return total
