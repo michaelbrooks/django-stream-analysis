@@ -21,7 +21,7 @@ if not logger.handlers:
 
 from models import BaseTimeFrame, TimedIntervalMixin
 from streams import AbstractStream
-from utils import AnalysisTask, cleanup
+from utils import AnalysisTask, cleanup, get_stream_cutoff_times
 
 __all__ = ['BaseTimeFrame', 'TimedIntervalMixin',
            'AbstractStream', 'AnalysisTask', 'cleanup']
