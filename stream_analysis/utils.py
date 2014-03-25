@@ -12,7 +12,7 @@ from django.utils import importlib, timezone
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 import settings
 import django_rq
-
+from rq import get_current_job
 
 logger = logging.getLogger('stream_analysis')
 scheduler = django_rq.get_scheduler()
@@ -187,6 +187,12 @@ def create_frames(task_key):
     For every new frame, an RQ job is created to analyze it.
     """
 
+    me = get_current_job()
+    for job in django_rq.get_queue().get_jobs():
+        if job.get_call_string() == me.get_call_string() and job.id != me.id:
+            logger.info("Skipping duplicate create_frames job")
+            return
+
     # Get the stream interface
     task = AnalysisTask.get(key=task_key)
     frame_class = task.get_frame_class()
@@ -298,9 +304,9 @@ def analyze_frame(task_key, frame_id):
     frame_class = task.get_frame_class()
     stream = frame_class.STREAM_CLASS()
 
-    logger.info("Running analysis for %s", task.name)
-
     frame = frame_class.objects.get(pk=frame_id)
+
+    logger.info("Running %s frame #%s (%s)", task.name, str(frame.pk), frame.start_time)
 
     # Get the stream data for this time frame
     stream_data = stream.get_stream_data(frame.start_time, frame.end_time)
@@ -315,7 +321,7 @@ def analyze_frame(task_key, frame_id):
 
     frame.mark_done()
 
-    logger.info('Processed data from %s for %s #%s', frame_class.STREAM_CLASS.__name__, frame_class.__name__, str(frame_id))
+    logger.info('Processed data from %s for %s frame #%s', frame_class.STREAM_CLASS.__name__, frame_class.__name__, str(frame_id))
 
 
 def get_stream_cutoff_times():

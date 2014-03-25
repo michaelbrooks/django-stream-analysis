@@ -64,12 +64,16 @@ class TweetStream(stream_analysis.AbstractStream):
             .order_by('created_at')
 
     def delete_before(self, cutoff_datetime):
+        if cutoff_datetime is None:
+            return 0
         analyzed = Tweet.objects.filter(created_at__lte=cutoff_datetime)
         count = analyzed.count()
         analyzed.delete()
         return count
 
     def count_before(self, cutoff_datetime):
+        if cutoff_datetime is None:
+            return 0
         analyzed = Tweet.objects.filter(start_time__lte=cutoff_datetime)
         return analyzed.count()
 ```
