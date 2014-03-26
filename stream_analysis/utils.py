@@ -353,7 +353,7 @@ def get_stream_cutoff_times():
     return stream_class_memory_cutoffs
 
 
-@django_rq.job
+@django_rq.job(timeout=3600)  # up to 1 hour
 def cleanup():
     """
     For all streams, deletes data that have been analyzed
