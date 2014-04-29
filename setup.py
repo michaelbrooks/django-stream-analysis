@@ -26,6 +26,7 @@ setup(
     ],
     install_requires=[
         "django",
+        "rq == 0.3.13",
         "django-rq >= 0.6.1",
         "rq-scheduler >= 0.4.0"
     ]
